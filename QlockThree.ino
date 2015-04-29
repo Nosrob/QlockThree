@@ -50,7 +50,7 @@ int cSec = 0;
 
 boolean forceUpdate = true;
 
-// the setup routine runs once when you press reset:
+// the setup routine runs once when you press reset
 void setup() { 
 
   //Initiate LED corners
@@ -88,16 +88,16 @@ void setup() {
   currentMode = MODE_DEFAULT;
 }
 
-// the loop routine runs over and over again forever:
+// the loop routine runs over and over again forever (to infinity and beyond)
 void loop() {
 
-  //Debug, prints the time in Serial connection
-  // Serial.println();
-  // print2digits(hour());
-  // Serial.write(':');
-  // print2digits(minute());
-  // Serial.write(':');
-  // print2digits(second());
+  //Debug, prints the time in 24H format in Serial connection
+   Serial.println();
+   print2digits(hour());
+   Serial.write(':');
+   print2digits(minute());
+   Serial.write(':');
+   print2digits(second());
 
   // Anyone pressed a button?
   int but1read = digitalRead(BUT1);
@@ -123,8 +123,6 @@ void loop() {
   else if ((but1read == LOW) && ((millis() - but1LastPress) > buttonPressDelay )){
     but1LastPress = 0;  // reset
   }
-
-
   if ((but2read == HIGH) && ((millis() - but2LastPress) > buttonPressDelay)) {
     but2LastPress = millis();
     doButton2();
@@ -150,7 +148,6 @@ void loop() {
         currentMode= MODE_NOITIS;
       }     
     }
-
     duration = millis() - startTime;
     if (((millis() - but4LastPress) > buttonPressDelay) && duration < 3000) {
       doButton4();
@@ -165,6 +162,8 @@ void loop() {
   if ((millis() - ledLastUpdate) > ledDelay) {
     ledLastUpdate = millis();
     if (currentMode == MODE_DEFAULT) mode_default();
+
+    // TODO
     // else if (currentMode == MODE_SECONDS) mode_defaultsec();
     // else if (currentMode == MODE_NOITIS) mode_seconds();
   }
@@ -179,7 +178,7 @@ void LED_CLEAR() {
 // Default mode
 void mode_default() {
 
-  //Real time now  
+  // Real time right now, 24H format  
   int hourNow = hour();
   int minuteNow = minute();
   int secondNow = second();
@@ -192,68 +191,44 @@ void mode_default() {
   int tpast5mins = minuteNow % 5; // remainder
   int t5mins = minuteNow - tpast5mins;
   int tHour = hourNow;
-
+  
+  // Convert into 12H format
   if (tHour > 12) tHour = tHour - 12;
-  //else if (tHour == 0) tHour = 12;
 
+  // Display 'IL EST'
   LED_CLEAR();
   W_ITIS();
 
-  // past
+  // Display 'MOINS' if needed
   if (t5mins > 30){
     W_TO();
     tHour = tHour+1;
     if (tHour > 12) tHour = 1;
   }
+  
 
-  if (tHour == 0) H_MIDNIGHT(); 
-  else if (tHour == 1) {
-    H_ONE(); 
-    W_HOUR();
-  } 
-  else if (tHour == 2) {
-    H_TWO();
-    W_HOURS(); 
-  } 
-  else if (tHour == 3) {
-    H_THREE(); 
-    W_HOURS();
-  } 
-  else if (tHour == 4) {
-    H_FOUR();
-    W_HOURS();
-  } 
-  else if (tHour == 5) {
-    H_FIVE(); 
-    W_HOURS();
-  } 
-  else if (tHour == 6) {
-    H_SIX(); 
-    W_HOURS();
-  } 
-  else if (tHour == 7) {
-    H_SEVEN(); 
-    W_HOURS();
-  } 
-  else if (tHour == 8) {
-    H_EIGHT();
-    W_HOURS();
-  } 
-  else if (tHour == 9) {
-    H_NINE(); 
-    W_HOURS();
-  } 
-  else if (tHour == 10) {
-    H_TEN(); 
-    W_HOURS();
-  } 
-  else if (tHour == 11) {
-    H_ELEVEN(); 
-    W_HOURS();
-  } 
-  else if (tHour == 12) H_NOON();
-
-
+  // Display the hour
+  if (tHour == 12) {
+    if (cHour == 23) {
+      H_MIDNIGHT();
+    } else {
+      H_NOON();
+    }
+  }
+  else if (tHour == 0) H_MIDNIGHT(); 
+  else if (tHour == 1) H_ONE(); 
+  else if (tHour == 2) H_TWO();
+  else if (tHour == 3) H_THREE(); 
+  else if (tHour == 4) H_FOUR();
+  else if (tHour == 5) H_FIVE(); 
+  else if (tHour == 6) H_SIX(); 
+  else if (tHour == 7) H_SEVEN();
+  else if (tHour == 8) H_EIGHT();
+  else if (tHour == 9) H_NINE(); 
+  else if (tHour == 10) H_TEN(); 
+  else if (tHour == 11) H_ELEVEN();
+  
+  // Display the minutes
   if (t5mins == 5 || t5mins == 55)     M_FIVE();
   else if (t5mins == 10 || t5mins == 50)    M_TEN();
   else if (t5mins == 15)    M_QUARTER_PLUS();
@@ -261,8 +236,6 @@ void mode_default() {
   else if (t5mins == 20 || t5mins == 40)    M_TWENTY();
   else if (t5mins == 25 || t5mins == 35)    M_TWENTYFIVE();
   else if (t5mins == 30)    M_HALF();
-
-  // +1min leds in the corners...
   if (tpast5mins == 0 ) { 
     P_ONE_OFF();
     P_TWO_OFF(); 
@@ -293,7 +266,14 @@ void mode_default() {
     P_THREE_ON(); 
     P_FOUR_ON(); 
   }
-
+  
+  // Display the words 'HOUR' or 'HOURS' according to the time
+  if (tHour == 0) {
+  } else if (tHour == 1) {
+    W_HOUR(); 
+  } else {
+    W_HOURS();
+  }
 
   // save last updated time
   cHour = hourNow;
@@ -301,6 +281,7 @@ void mode_default() {
   cSec = secondNow;
   forceUpdate = false;
 }
+
 
 // Brightness
 void doButton1() {
@@ -310,7 +291,6 @@ void doButton1() {
   else {
     ledIntensity = ledIntensity + 3;
   }
-
   LC1.setIntensity(0,ledIntensity);    
   LC2.setIntensity(0,ledIntensity);    
 }
@@ -333,7 +313,7 @@ void doButton4() {
   setTime(RTC.get());
 }
 
-// Used for Serial debug
+// Used for Serial printing
 void print2digits(int number) {
   if (number >= 0 && number < 10) {
     Serial.write('0');
@@ -348,16 +328,16 @@ void W_ITIS() {
 
 // CINQ
 void M_FIVE(){
-  LC2.setRow(0,3,B00000011);
-  LC2.setRow(0,5,B00100000);
-  LC2.setRow(0,6,B00100000);  
+  LC2.setRow(0,3,B00000011); //CI
+  LC2.setRow(0,5,B00100000); //N
+  LC2.setRow(0,6,B00100000); //Q 
 }
 
 // DIX
 void M_TEN(){
-  LC2.setRow(0,5,B00001000);  
-  LC2.setRow(0,6,B00001000); 
-  LC2.setRow(0,7,B00001000); 
+  LC2.setRow(0,5,B00001000); //D
+  LC2.setRow(0,6,B00001000); //I
+  LC2.setRow(0,7,B00001000); //X
 }
 
 // ET QUART
@@ -367,8 +347,8 @@ void M_QUARTER_PLUS(){
 
 // MOINS LE QUART
 void M_QUARTER_MINUS(){
-  LC2.setRow(0,1,B11111011);
-  LC2.setRow(0,2,B00011111);
+  LC2.setRow(0,1,B11111011); //MOINS LE
+  LC2.setRow(0,2,B00011111); //QUART
 }
 
 // VINGT
@@ -378,9 +358,9 @@ void M_TWENTY(){
 
 // VINGT-CINQ
 void M_TWENTYFIVE(){
-  LC2.setRow(0,3,B11111111);
-  LC2.setRow(0,5,B00100000);
-  LC2.setRow(0,6,B00100000);  
+  LC2.setRow(0,3,B11111111); //VINT-CI
+  LC2.setRow(0,5,B00100000); //N
+  LC2.setRow(0,6,B00100000); //Q
 }
 
 // ET DEMIE
@@ -394,19 +374,19 @@ void H_ONE(){
 }
 // DEUX
 void H_TWO(){
-  LC1.setLed(0,0,7,true); 
-  LC1.setRow(0,5,B00000100);  
-  LC1.setRow(0,6,B00000100); 
-  LC1.setRow(0,7,B00000100); 
+  LC1.setLed(0,0,7,true); //D
+  LC1.setRow(0,5,B00000100); //E 
+  LC1.setRow(0,6,B00000100); //U
+  LC1.setRow(0,7,B00000100); //X
 }
 
 // TROIS
 void H_THREE(){
-  LC1.setLed(0,1,7,true); 
-  LC1.setLed(0,1,6,true); 
-  LC1.setRow(0,5,B00001000);  
-  LC1.setRow(0,6,B00001000); 
-  LC1.setRow(0,7,B00001000);
+  LC1.setLed(0,1,7,true); //T
+  LC1.setLed(0,1,6,true); //R
+  LC1.setRow(0,5,B00001000); //O 
+  LC1.setRow(0,6,B00001000); //I
+  LC1.setRow(0,7,B00001000); //S
 }
 
 // QUATRE
@@ -416,10 +396,10 @@ void H_FOUR(){
 
 // CINQ
 void H_FIVE(){
-  LC1.setLed(0,3,7,true); 
-  LC1.setRow(0,5,B00100000);  
-  LC1.setRow(0,6,B00100000); 
-  LC1.setRow(0,7,B00100000); 
+  LC1.setLed(0,3,7,true); //C
+  LC1.setRow(0,5,B00100000); //I 
+  LC1.setRow(0,6,B00100000); //N
+  LC1.setRow(0,7,B00100000); //Q
 }
 
 // SIX
@@ -429,10 +409,10 @@ void H_SIX(){
 
 // SEPT
 void H_SEVEN(){
-  LC1.setLed(0,2,7,true); 
-  LC1.setRow(0,5,B00010000);  
-  LC1.setRow(0,6,B00010000); 
-  LC1.setRow(0,7,B00010000);
+  LC1.setLed(0,2,7,true); //S
+  LC1.setRow(0,5,B00010000); //E 
+  LC1.setRow(0,6,B00010000); //P
+  LC1.setRow(0,7,B00010000); //T
 }
 
 // HUIT
@@ -452,7 +432,10 @@ void H_TEN(){
 
 // ONZE
 void H_ELEVEN(){
-  LC2.setRow(0,0,B11110000);
+  LC2.setLed(0,0,0,true); //O
+  LC2.setLed(0,0,1,true); //N
+  LC2.setLed(0,0,2,true); //Z
+  LC2.setLed(0,0,3,true); //E
 }
 
 // MIDI
@@ -462,10 +445,10 @@ void H_NOON(){
 
 // MINUIT
 void H_MIDNIGHT(){
-  LC1.setRow(0,4,B00000111);
-  LC1.setRow(0,5,B01000000); 
-  LC1.setRow(0,6,B01000000); 
-  LC1.setRow(0,7,B01000000); 
+  LC1.setRow(0,4,B00000111); //M
+  LC1.setRow(0,5,B01000000); //I
+  LC1.setRow(0,6,B01000000); //N
+  LC1.setRow(0,7,B01000000); //UIT
 }
 
 // MOINS
@@ -477,17 +460,16 @@ void W_TO(){
   LC2.setLed(0,1,4,true); 
 }
 
-// HEURES
+// HEURE
 void W_HOUR(){
   LC2.setLed(0,0,5,true);
   LC2.setLed(0,0,6,true);
   LC2.setLed(0,0,7,true);
   LC2.setLed(0,5,5,true);
   LC2.setLed(0,6,5,true);
-  //LC2.setLed(0,7,5,true);
 }
 
-// HEURE
+// HEURES
 void W_HOURS(){
   LC2.setLed(0,0,5,true);
   LC2.setLed(0,0,6,true);
